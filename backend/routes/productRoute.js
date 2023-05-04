@@ -5,16 +5,25 @@ const {
   updateProduct,
   deleteProduct,
   getProductDetails,
+  createProductReview,
+  getProductReviews,
+  deleteReview,
 } = require("../controllers/productController");
 const { isAuthenticated, authorizeRoles } = require("../middleware/auth");
 const router = express.Router();
 
 router.route("/products").get(getAllProducts);
-router.route("/product/new").post(isAuthenticated, authorizeRoles('admin'),  createProduct);
+
 router
-  .route("/product/:id")
+  .route("/admin/product/new")
+  .post(isAuthenticated, authorizeRoles("admin"), createProduct);
+router
+  .route("/admin/product/:id")
   .put(isAuthenticated, authorizeRoles("admin"), updateProduct)
   .delete(isAuthenticated, authorizeRoles("admin"), deleteProduct)
   .get(getProductDetails);
+
+router.route("/review").put(isAuthenticated, createProductReview);
+router.route("/reviews").get(getProductReviews).delete(isAuthenticated, deleteReview);
 
 module.exports = router;

@@ -95,3 +95,120 @@ exports.forgotPassword = catchAsyncError(async (req, res, next) => {
     }
 
 });
+
+// Get User details
+exports.getUserDetails = catchAsyncError(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+        return next(new ErrorHandler(`User not found with id: ${req.user.id}`));
+    }
+
+    res.status(200).json({
+        success: true,
+        user
+    })
+});
+
+// Update / Change Password => /api/v1/password/update
+exports.updatePassword = catchAsyncError(async (req, res, next) => {
+    const user = await User.findById(req.user.id).select('+password');
+
+    // Check previous user password
+    const isMatched = await user.comparePassword(req.body.oldPassword);
+    if (!isMatched) {
+        return next(new ErrorHandler('Old password is incorrect', 400));
+    }
+
+    if(req.body.newPassword !== req.body.confirmPassword) {
+        return next(new ErrorHandler('Password does not match', 400));
+    }
+
+    user.password = req.body.newPassword;
+    await user.save();
+
+    sendToken(user, 200, res);
+});
+
+
+// Update User Profile => /api/v1/me/update
+exports.updateProfile = catchAsyncError(async (req, res, next) => {
+    const newUserData = {
+        name: req.body.name,
+        email: req.body.email
+    }
+
+    const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
+        new: true,
+        runValidators: true,
+        useFindAndModify: false
+    });
+
+    res.status(200).json({
+        success: true
+    })
+});
+
+// Admin Routes
+exports.getAllUsers = catchAsyncError(async (req, res, next) => {
+    const users = await User.find();
+
+    res.status(200).json({
+        success: true,
+        users
+    })
+});
+
+// Get User Details => /api/v1/admin/user/:id
+exports.getUserDetailsAdmin = catchAsyncError(async (req, res, next) => {
+    const user = await User.findById(req.params.id)
+
+    if(!user) {
+        return next(new ErrorHandler(`User not found with id: ${req.params.id}`));
+    }
+   
+    res.status(200).json({
+        success: true,
+        user
+    })
+
+});
+
+// Update User Profile => /api/v1/admin/user/:id
+exports.updateUserAdmin = catchAsyncError(async (req, res, next) => {
+    const newUserData = {
+        name: req.body.name,
+        email: req.body.email,
+        role: req.body.role
+    }
+
+    const user = await User.findByIdAndUpdate(req.params.id, newUserData, {
+        new: true,
+        runValidators: true,
+        useFindAndModify: false
+    });
+
+    res.status(200).json({
+        success: true
+    })
+});
+
+// Delete User => /api/v1/admin/user/:id
+exports.deleteUserAdmin = catchAsyncError(async (req, res, next) => {
+    const user =  User.findById(req.params.id)
+    
+    if(!user) {
+        return next(new ErrorHandler(`User not found with id: ${req.params.id}`));
+    }
+
+    // Remove avatar from cloudinary
+
+
+    await user.findOneAndRemove();
+
+
+    res.status(200).json({
+        success: true,
+        message: 'User is deleted'
+    })
+});

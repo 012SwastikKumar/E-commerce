@@ -2,8 +2,8 @@ const nodemailer = require('nodemailer');
 
 const sendEmail = async options => {
     const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT,
+        // host: process.env.SMTP_HOST,
+        // port: process.env.SMTP_PORT,
         service: process.env.SMTP_SERVICE,
         // secure: false, // true for 465, false for other ports
         auth: {
@@ -13,7 +13,8 @@ const sendEmail = async options => {
     });
 
     const mailOptions = {
-        from: `${process.env.SMTP_FROM_NAME} <${process.env.SMTP_FROM_EMAIL}>`, // sender address
+        // from: `${process.env.SMTP_FROM_NAME} <${process.env.SMTP_FROM_EMAIL}>`, // sender address
+        from: process.env.SMTP_EMAIL, // sender address
         to: options.email, // list of receivers
         subject: options.subject, // Subject line
         text: options.message, // plain text body
